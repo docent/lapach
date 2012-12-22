@@ -29,16 +29,4 @@ public class FeedParser {
         }
         return rss;
     }
-
-    private class Handler extends DefaultHandler {
-        @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-            System.out.println("qName = " + qName);
-        }
-
-        @Override
-        public void endElement(String uri, String localName, String qName) throws SAXException {
-            super.endElement(uri, localName, qName);
-        }
-    }
 }

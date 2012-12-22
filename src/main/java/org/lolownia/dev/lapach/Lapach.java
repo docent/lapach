@@ -32,8 +32,8 @@ public class Lapach {
         }
 
 
-//        Downloader downloader = new Downloader(feedUrl, username, password);
-//        downloader.download();
+        Downloader downloader = new Downloader(feedUrl, username, password);
+        downloader.download();
     }
 
     private static Options createOptions() {
