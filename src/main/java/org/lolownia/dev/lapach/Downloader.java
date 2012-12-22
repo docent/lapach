@@ -4,6 +4,7 @@ import com.orientechnologies.orient.object.db.OObjectDatabaseTx;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ public class Downloader {
     private String username;
     private String password;
 
-    DefaultHttpClient client = new DefaultHttpClient();
+    HttpClient client;
 
     public Downloader(String feedUrl) {
         this(feedUrl, null, null);
@@ -32,11 +33,22 @@ public class Downloader {
         this.feedUrl = feedUrl;
         this.username = username;
         this.password = password;
+
+        client = setupHttpClient();
+    }
+
+    private HttpClient setupHttpClient() {
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+        if (username != null) {
+            httpClient.getCredentialsProvider().setCredentials(
+                    new AuthScope(null, AuthScope.ANY_PORT),
+                    new UsernamePasswordCredentials(username, password));
+        }
+        return httpClient;
     }
 
     public void download() {
-        FeedParser parser = new FeedParser();
-        Rss rss = parser.parse(null);
+        Rss rss = getRss();
 
         // Create a directory for all podcasts, if not exists
         File allPodcastsDir = new File("Podcasts");
@@ -85,32 +97,22 @@ public class Downloader {
 
         db.getEntityManager().registerEntityClass(DownloadInfo.class);
 
-//        for (Rss.Item item : rss.getChannel().getItems()) {
-//            OneItemDownloader oneItemDownloader = new OneItemDownloader(
-//                    httrss, item, podcastDir, db);
-//            oneItemDownloader.download();
-//        }
-        OneItemDownloader oneItemDownloader = new OneItemDownloader(client,
-                rss, rss.getChannel().getItems().get(0), podcastDir, db
-        );
-        try {
-            oneItemDownloader.download();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        for (Rss.Item item : rss.getChannel().getItems()) {
+            OneItemDownloader oneItemDownloader = new OneItemDownloader(client,
+                    rss, item, podcastDir, db);
+            try {
+                oneItemDownloader.download();
+            } catch (IOException e) {
+                log.error("Failed to download \"" + item.getTitle() + "\"", e);
+            }
         }
 
     }
 
     private Rss getRss() {
-
-        if (username != null) {
-            client.getCredentialsProvider().setCredentials(
-                    new AuthScope(null, AuthScope.ANY_PORT),
-                    new UsernamePasswordCredentials(username, password));
-        }
-
         HttpGet get = new HttpGet(feedUrl);
         HttpResponse response;
+        log.info("Downloading RSS feed");
         try {
             response = client.execute(get);
         } catch (IOException e) {

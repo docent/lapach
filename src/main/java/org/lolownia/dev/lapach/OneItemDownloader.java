@@ -48,7 +48,17 @@ public class OneItemDownloader {
         } else if (result.size() == 1) {
             downloadInfo = result.get(0);
             if (downloadInfo.isDownloaded()) {
-                downloadNeeded = false;
+                // Check if exist and file size correct
+                File downloadedFile = new File(podcastDir, downloadInfo.getSavedFileName());
+                if (!downloadedFile.exists()) {
+                    logger.info("Previously downloaded file does not exist, downloading again");
+                } else if (new File(podcastDir, downloadInfo.getSavedFileName()).length() !=
+                        item.getEnclosure().getLength()) {
+                    logger.info("Previously downloaded file size different from expected, " +
+                            "downloading again");
+                } else {
+                    downloadNeeded = false;
+                }
             }
         } else {
            throw new RuntimeException("Duplicate GUIDS for download items");
@@ -56,6 +66,7 @@ public class OneItemDownloader {
 
         if (downloadNeeded) {
             logger.info("Downloading \"" + item.getTitle() + "\"");
+            logger.info("Download URL: " + item.getEnclosure().getUrl());
             URL url = new URL(item.getEnclosure().getUrl());
             String originalFileName = url.getFile();
             String savedFileName = getSavedFileName(originalFileName, item.getTitle());
@@ -86,6 +97,7 @@ public class OneItemDownloader {
                 } catch (IOException ignored) {}
             }
             downloadInfo.setDownloaded(true);
+            downloadInfo.setSavedFileName(savedFileName);
             db.save(downloadInfo);
         } else {
             logger.debug("Skipping \"" + item.getTitle() + "\"");
