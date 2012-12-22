@@ -1,11 +1,9 @@
 package org.lolownia.dev.lapach;
 
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.object.db.OObjectDatabaseTx;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.Logger;
@@ -14,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 
 public class Downloader {
 
@@ -22,6 +21,8 @@ public class Downloader {
     private String feedUrl;
     private String username;
     private String password;
+
+    DefaultHttpClient client = new DefaultHttpClient();
 
     public Downloader(String feedUrl) {
         this(feedUrl, null, null);
@@ -53,7 +54,7 @@ public class Downloader {
 
         // Create a directory for the currently downloaded podcast, if not
         // exists
-        String podcastDirName = getValidFileName(rss.getChannel().getTitle());
+        String podcastDirName = LapachUtil.getValidFileName(rss.getChannel().getTitle());
 
         if (podcastDirName == null) {
             throw new RuntimeException("Generated podcast dir is empty");
@@ -86,18 +87,21 @@ public class Downloader {
 
 //        for (Rss.Item item : rss.getChannel().getItems()) {
 //            OneItemDownloader oneItemDownloader = new OneItemDownloader(
-//                    rss, item, podcastDir, db);
+//                    httrss, item, podcastDir, db);
 //            oneItemDownloader.download();
 //        }
-        OneItemDownloader oneItemDownloader = new OneItemDownloader(
+        OneItemDownloader oneItemDownloader = new OneItemDownloader(client,
                 rss, rss.getChannel().getItems().get(0), podcastDir, db
         );
-        oneItemDownloader.download();
+        try {
+            oneItemDownloader.download();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
     private Rss getRss() {
-        DefaultHttpClient client = new DefaultHttpClient();
 
         if (username != null) {
             client.getCredentialsProvider().setCredentials(
@@ -134,11 +138,4 @@ public class Downloader {
         return rss;
     }
 
-    public static String getValidFileName(String fileName) {
-        String newFileName =  fileName.replaceAll("[:\\\\/*?|<>]", "_");
-        if (newFileName.length() == 0) {
-            return null;
-        }
-        return newFileName;
-    }
 }

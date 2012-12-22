@@ -10,6 +10,7 @@ allprojects {
         compile 'com.orientechnologies:orient-commons:1.2.0'
         compile 'commons-cli:commons-cli:1.2'
         compile 'commons-configuration:commons-configuration:1.9'
+        compile 'commons-io:commons-io:2.4'
         compile 'org.apache.httpcomponents:httpclient:4.2.1'
         compile 'ch.qos.logback:logback-classic:1.0.7'
     }

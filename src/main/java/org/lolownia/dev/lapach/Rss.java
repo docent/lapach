@@ -57,6 +57,10 @@ public class Rss {
         public String getGuid() {
             return guid;
         }
+
+        public Enclosure getEnclosure() {
+            return enclosure;
+        }
     }
 
     public static class Enclosure {
