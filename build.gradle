@@ -10,5 +10,6 @@ allprojects {
         compile 'com.orientechnologies:orient-commons:1.2.0'
         compile 'commons-cli:commons-cli:1.2'
         compile 'commons-configuration:commons-configuration:1.9'
+        compile 'org.apache.httpcomponents:httpclient:4.2.1'
     }
 }
