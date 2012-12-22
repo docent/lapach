@@ -106,8 +106,7 @@ public class OneItemDownloader {
 
     private static String getSavedFileName(String originalFileName, String title) {
         String originalFileExt = FilenameUtils.getExtension(originalFileName);
-        String savedFileName = title + "." + originalFileExt;
+        String savedFileName = title.trim() + "." + originalFileExt;
         return LapachUtil.getValidFileName(savedFileName);
     }
-
 }
